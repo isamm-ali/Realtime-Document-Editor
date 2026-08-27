@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:frontend/providers/signin_provider.dart';
+import 'package:frontend/screens/singup_screen.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -14,41 +16,33 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   bool obscurePassword = true;
 
+  static const _ink = Color(0xFF141414);
+  static const _muted = Color(0xFF8A8A8A);
+  static const _border = Color(0xFFE3E3E1);
+  static const _fill = Color(0xFFFAFAF9);
+
   InputDecoration inputDecoration({
     required String hintText,
     Widget? suffixIcon,
   }) {
     return InputDecoration(
       hintText: hintText,
-      hintStyle: TextStyle(
-        color: Colors.grey.shade500,
-        fontSize: 15,
-      ),
+      hintStyle: const TextStyle(color: _muted, fontSize: 15),
       suffixIcon: suffixIcon,
       filled: true,
-      fillColor: Colors.grey.shade50,
-      contentPadding: const EdgeInsets.symmetric(
-        horizontal: 18,
-        vertical: 17,
-      ),
+      fillColor: _fill,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 17),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
-        borderSide: BorderSide(
-          color: Colors.grey.shade300,
-        ),
+        borderSide: const BorderSide(color: _border),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
-        borderSide: BorderSide(
-          color: Colors.grey.shade300,
-        ),
+        borderSide: const BorderSide(color: _border),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(
-          color: Colors.blue,
-          width: 1.8,
-        ),
+        borderSide: const BorderSide(color: _ink, width: 1.4),
       ),
     );
   }
@@ -66,97 +60,58 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       backgroundColor: Colors.white,
       body: Center(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 24,
-            vertical: 40,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
           child: ConstrainedBox(
-            constraints: const BoxConstraints(
-              maxWidth: 430,
-            ),
-            child: Container(
-              padding: const EdgeInsets.all(32),
+            constraints: const BoxConstraints(maxWidth: 400),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 40),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   // Logo
-                  Center(
-                    child: Container(
-                      width: 56,
-                      height: 56,
-                      decoration: BoxDecoration(
-                        color: Colors.blue,
-                        borderRadius: BorderRadius.circular(16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: const [
+                      Text(
+                        'SulfurDocs',
+                        style: TextStyle(
+                          fontSize: 26,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: -0.4,
+                          color: _ink,
+                        ),
                       ),
-                      child: const Icon(
-                        Icons.description_rounded,
-                        color: Colors.white,
-                        size: 30,
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 10),
-
-                  const Center(
-                    child: Text(
-                      'Welcome back',
-                      style: TextStyle(
-                        fontSize: 30,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: -0.5,
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 2),
-
-                  Center(
-                    child: Text(
-                      'Sign in to continue',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Colors.grey.shade600,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 40),
-
-                  const Text(
-                    'Email',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
+                      SizedBox(width: 6),
+                      Icon(Icons.description_outlined, size: 26, color: _ink),
+                    ],
                   ),
 
                   const SizedBox(height: 8),
 
+                  const Text(
+                    'Welcome back',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 14, color: Colors.black),
+                  ),
+
+                  const SizedBox(height: 36),
+
+                  // Email
                   TextField(
                     controller: emailController,
                     keyboardType: TextInputType.emailAddress,
-                    decoration: inputDecoration(
-                      hintText: 'Enter your email',
-                    ),
+                    style: const TextStyle(fontSize: 15, color: _ink),
+                    decoration: inputDecoration(hintText: 'Enter your email'),
                   ),
 
-                  const SizedBox(height: 15),
+                  const SizedBox(height: 12),
 
-                  const Text(
-                    'Password',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-
-                  const SizedBox(height: 8),
-
+                  // Password
                   TextField(
                     controller: passwordController,
                     obscureText: obscurePassword,
+                    style: const TextStyle(fontSize: 15, color: _ink),
                     decoration: inputDecoration(
                       hintText: 'Enter your password',
                       suffixIcon: IconButton(
@@ -165,7 +120,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           obscurePassword
                               ? Icons.visibility_off_outlined
                               : Icons.visibility_outlined,
-                          color: Colors.grey.shade600,
+                          color: _muted,
+                          size: 20,
                         ),
                         onPressed: () {
                           setState(() {
@@ -176,8 +132,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                   ),
 
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 14),
 
+                  // Forgot password
                   Align(
                     alignment: Alignment.centerRight,
                     child: TextButton(
@@ -190,61 +147,98 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       child: const Text(
                         'Forgot password?',
                         style: TextStyle(
-                          color: Colors.blue,
-                          fontWeight: FontWeight.w600,
+                          color: _ink,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),
                   ),
 
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 32),
 
+                  // Sign in button
                   SizedBox(
                     width: double.infinity,
-                    height: 45,
+                    height: 50,
                     child: ElevatedButton(
                       onPressed: () {
-                        print(emailController.text);
-                        print(passwordController.text);
+                        if (emailController.text.trim().isEmpty ||
+                            passwordController.text.trim().isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("All fields are required"),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                          return;
+                        } else {
+                          ref
+                              .read(signinProvider.notifier)
+                              .setEmail(emailController.text.trim());
+                          ref
+                              .read(signinProvider.notifier)
+                              .setPassword(passwordController.text.trim());
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => Placeholder(),
+                            ),
+                          );
+                        }
                       },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                      ),
+                      style:
+                          ElevatedButton.styleFrom(
+                            backgroundColor: _ink,
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            shadowColor: Colors.transparent,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ).copyWith(
+                            overlayColor: WidgetStateProperty.all(
+                              Colors.white.withValues(alpha: 0.08),
+                            ),
+                          ),
                       child: const Text(
                         'Sign In',
                         style: TextStyle(
-                          fontSize: 16,
+                          fontSize: 15,
                           fontWeight: FontWeight.w600,
+                          letterSpacing: 0.2,
                         ),
                       ),
                     ),
                   ),
 
-                  const SizedBox(height: 15),
+                  const SizedBox(height: 24),
 
+                  // Sign up
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
+                      const Text(
                         "Don't have an account? ",
-                        style: TextStyle(
-                          color: Colors.grey.shade600,
-                          fontSize: 14,
-                        ),
+                        style: TextStyle(color: _muted, fontSize: 13.5),
                       ),
                       GestureDetector(
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const SignUpScreen(),
+                            ),
+                          );
+                        },
                         child: const Text(
                           'Sign up',
                           style: TextStyle(
-                            color: Colors.blue,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
+                            color: _ink,
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w600,
+                            decoration: TextDecoration.underline,
+                            decorationColor: _border,
                           ),
                         ),
                       ),

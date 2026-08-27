@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/screens/login_screen.dart';
+import 'package:frontend/screens/profilepic_screen.dart';
+import 'package:frontend/screens/singup_screen.dart';
 
 void main() {
   runApp(
@@ -17,7 +19,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: const LoginScreen(),
+      home: const SignUpScreen(),
     );
   }
 }
