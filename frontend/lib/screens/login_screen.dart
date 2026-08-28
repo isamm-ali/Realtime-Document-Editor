@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:frontend/providers/signin_provider.dart';
+import 'package:frontend/screens/home_page.dart';
 import 'package:frontend/screens/singup_screen.dart';
+import 'package:frontend/services/auth_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -162,7 +164,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     width: double.infinity,
                     height: 50,
                     child: ElevatedButton(
-                      onPressed: () {
+                      onPressed: () async {
                         if (emailController.text.trim().isEmpty ||
                             passwordController.text.trim().isEmpty) {
                           ScaffoldMessenger.of(context).showSnackBar(
@@ -172,20 +174,32 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             ),
                           );
                           return;
-                        } else {
-                          ref
-                              .read(signinProvider.notifier)
-                              .setEmail(emailController.text.trim());
-                          ref
-                              .read(signinProvider.notifier)
-                              .setPassword(passwordController.text.trim());
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => Placeholder(),
-                            ),
-                          );
                         }
+
+                        final result = await AuthService.signin(
+                          email: emailController.text.trim(),
+                          password: passwordController.text,
+                        );
+
+                        if (!context.mounted) return;
+
+                        if (!result['success']) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(result['message'])),
+                          );
+                          return;
+                        }
+
+                        final prefs = await SharedPreferences.getInstance();
+
+                        await prefs.setString('token', result['token']);
+
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const HomePage(),
+                          ),
+                        );
                       },
                       style:
                           ElevatedButton.styleFrom(

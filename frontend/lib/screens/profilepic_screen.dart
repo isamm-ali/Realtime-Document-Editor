@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/data/avatars.dart';
 import 'package:frontend/providers/signup_provider.dart';
+import 'package:frontend/screens/home_page.dart';
+import 'package:frontend/services/auth_service.dart';
 
 class ProfilePic extends ConsumerStatefulWidget {
   const ProfilePic({super.key});
@@ -96,10 +98,29 @@ class _ProfilePicState extends ConsumerState<ProfilePic> {
               width: double.infinity,
               height: 40,
               child: ElevatedButton(
-                onPressed: () {
+                onPressed: () async {
                   ref
                       .read(signupProvider.notifier)
                       .setPfp(avatars[selectedIndex].id);
+
+                  final signupData = ref.read(signupProvider);
+
+                  final result = await AuthService.signup(signupData);
+
+                  if (!context.mounted) return;
+
+                  if (!result['success']) {
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: Text(result['message'])));
+
+                    return;
+                  }
+
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const HomePage()),
+                  );
                 },
                 style:
                     ElevatedButton.styleFrom(
