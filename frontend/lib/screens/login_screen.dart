@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:frontend/data/local_storage.dart';
 import 'package:frontend/screens/home_page.dart';
 import 'package:frontend/screens/singup_screen.dart';
 import 'package:frontend/services/auth_service.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -189,11 +189,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           );
                           return;
                         }
-
-                        final prefs = await SharedPreferences.getInstance();
-
-                        await prefs.setString('token', result['token']);
-
+                        LocalStorage().setToken(result['token']);
                         Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(

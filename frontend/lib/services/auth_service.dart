@@ -1,4 +1,6 @@
 import 'dart:convert';
+
+import 'package:frontend/data/local_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:frontend/providers/signup_provider.dart';
 
@@ -8,9 +10,7 @@ class AuthService {
   static Future<Map<String, dynamic>> signup(SignupState data) async {
     final response = await http.post(
       Uri.parse('$baseUrl/signup'),
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         'username': data.username,
         'email': data.email,
@@ -33,13 +33,8 @@ class AuthService {
   }) async {
     final response = await http.post(
       Uri.parse('$baseUrl/signin'),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode({
-        'email': email,
-        'password': password,
-      }),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'email': email, 'password': password}),
     );
 
     final responseData = jsonDecode(response.body);
@@ -49,5 +44,21 @@ class AuthService {
       'message': responseData['message'] ?? 'Something went wrong',
       'token': responseData['token'],
     };
+  }
+
+  Future<Map<String, dynamic>?> getUserData() async {
+    final token = await LocalStorage().getToken();
+    if (token == null) {
+      return null;
+    }
+    final response = await http.get(
+      Uri.parse('$baseUrl/me'),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+    if (response.statusCode != 200) {
+      return null;
+    }
+    final responseData = jsonDecode(response.body);
+    return {...Map<String, dynamic>.from(responseData['user']), 'token': token};
   }
 }

@@ -38,28 +38,28 @@ export const signin = async (req, res) => {
     const password = req.body.password;
     const user = await User.findOne({ email: email });
     if (!user) {
-      return res.json({ message: "Email or Password is invalid" });
+      return res.status(401).json({ message: "Email or Password is invalid" });
     } else {
       const passMatch = await bcrypt.compare(password, user.password);
       if (passMatch) {
         const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
           expiresIn: "7d",
         });
-        return res.json({ message: "Login successful!" });
+        return res.status(200).json({ message: "Login successful!", token });
       } else {
-        return res.json({ message: "Email or Password is invalid" });
+        return res.status(401).json({ message: "Email or Password is invalid" });
       }
     }
   } catch {
     return res.status(500).json({
       message: "Something went wrong",
     });
-  }g
+  }
 };
 
 export const getinfo = async (req, res) => {
   try {
-    const user = await User.findById(req.userId).select("-Password");
+    const user = await User.findById(req.user.userId).select("-password");
     if (!user) {
       return res.status(404).json({
         message: "User not found",
