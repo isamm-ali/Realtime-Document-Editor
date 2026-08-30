@@ -7,7 +7,7 @@ const documentSchema = new mongoose.Schema({
     },
     createdAt: {
         required: true,
-        type: Number,
+        type: Date,
     },
     title: {
         required: true,

@@ -14,7 +14,7 @@ class UserNotifier extends Notifier<UserState> {
     return const UserState();
   }
   Future<void> getUserData() async {
-    final user = await AuthService().getUserData(AuthService.baseUrl);
+    final user = await AuthService().getStoredUserData();
 
     state = UserState(
       user: user,

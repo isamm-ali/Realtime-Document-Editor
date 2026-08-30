@@ -1,7 +1,9 @@
+import { Document } from "../models/document.js";
+
 export const createDocument = async (req, res) => {
   try {
     const document = await Document.create({
-      uid: req.user,
+      uid: req.user.userId,
       title: 'Untitled Document',
       createdAt: new Date(),
     });
