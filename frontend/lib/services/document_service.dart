@@ -11,14 +11,17 @@ class DocumentService {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
       },
+      body: jsonEncode({
+        'createdAt': DateTime.now().millisecondsSinceEpoch,
+      }),
     );
 
-    final data = jsonDecode(response.body);
+    final responseData = jsonDecode(response.body);
 
-    if (response.statusCode == 200) {
-      return data;
-    }
-
-    throw Exception(data['message'] ?? 'Failed to create document');
+    return {
+      'success': response.statusCode == 200,
+      'message': responseData['message'] ?? 'Something went wrong',
+      'document': response.statusCode == 200 ? responseData : null,
+    };
   }
 }
