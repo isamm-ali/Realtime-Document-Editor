@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:frontend/data/local_storage.dart';
-import 'package:frontend/screens/home_page.dart';
+import 'package:frontend/repositories/local_storage_repository.dart';
+import 'package:frontend/providers/user_provider.dart';
 import 'package:frontend/screens/singup_screen.dart';
 import 'package:frontend/services/auth_service.dart';
+
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -189,13 +190,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           );
                           return;
                         }
-                        LocalStorage().setToken(result['token']);
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const HomePage(),
-                          ),
-                        );
+                        await LocalStorageRepository().setToken(result['token']);
+                        await ref.read(userProvider.notifier).getUserData();
                       },
                       style:
                           ElevatedButton.styleFrom(

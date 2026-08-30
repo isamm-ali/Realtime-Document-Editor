@@ -384,6 +384,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.4.2"
+  routemaster:
+    dependency: "direct main"
+    description:
+      name: routemaster
+      sha256: "6a10d91a656378f35fa8c0f27976cbb8b6cdf9d3a549c2863a092a09b5832553"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.1"
   shared_preferences:
     dependency: "direct main"
     description:

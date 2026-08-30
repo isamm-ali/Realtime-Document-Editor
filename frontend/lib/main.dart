@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/providers/user_provider.dart';
-import 'package:frontend/screens/home_page.dart';
-import 'package:frontend/screens/login_screen.dart';
+import 'package:frontend/router.dart';
+import 'package:routemaster/routemaster.dart';
 
 void main() {
   runApp(const ProviderScope(child: MyApp()));
@@ -22,13 +22,20 @@ class _MyAppState extends ConsumerState<MyApp> {
       ref.read(userProvider.notifier).getUserData();
     });
   }
-
   @override
   Widget build(BuildContext context) {
-    final userState = ref.watch(userProvider);
-
-    return MaterialApp(
-      home: userState.user == null ? const LoginScreen() : const HomePage(),
+    return MaterialApp.router(
+      debugShowCheckedModeBanner: false,
+      routerDelegate: RoutemasterDelegate(
+        routesBuilder: (context) {
+          final userState = ref.watch(userProvider);
+          if (userState.user != null) {
+            return loggedInRoute;
+          }
+          return loggedOutRoute;
+        },
+      ),
+      routeInformationParser: const RoutemasterParser(),
     );
   }
 }
