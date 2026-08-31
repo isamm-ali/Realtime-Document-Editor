@@ -12,11 +12,17 @@ class DocumentRepository {
 
   Future<Map<String, dynamic>> createDocument() async {
     final token = await localStorage.getToken();
-
     if (token == null) {
       throw Exception('User is not authenticated');
     }
-
     return await documentService.createDocument(token);
+  }
+
+  Future<Map<String, dynamic>> getDocuments() async {
+    final token = await localStorage.getToken();
+    if (token == null) {
+      throw Exception('User is not authenticated');
+    }
+    return await documentService.getDocuments(token);
   }
 }
