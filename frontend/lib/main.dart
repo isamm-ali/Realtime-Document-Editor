@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/providers/user_provider.dart';
 import 'package:frontend/router.dart';
+import 'package:frontend/widgets/loader.dart';
 import 'package:routemaster/routemaster.dart';
 
 void main() {
@@ -22,6 +23,7 @@ class _MyAppState extends ConsumerState<MyApp> {
       ref.read(userProvider.notifier).getUserData();
     });
   }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
@@ -29,6 +31,9 @@ class _MyAppState extends ConsumerState<MyApp> {
       routerDelegate: RoutemasterDelegate(
         routesBuilder: (context) {
           final userState = ref.watch(userProvider);
+          if (userState.isLoading) {
+            return loadingRoute;
+          }
           if (userState.user != null) {
             return loggedInRoute;
           }

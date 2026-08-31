@@ -1,6 +1,7 @@
 import 'package:frontend/screens/document_screen.dart';
 import 'package:frontend/screens/home_page.dart';
 import 'package:frontend/screens/login_screen.dart';
+import 'package:frontend/widgets/loader.dart';
 import 'package:routemaster/routemaster.dart';
 import 'package:flutter/material.dart';
 
@@ -11,6 +12,11 @@ final loggedOutRoute = RouteMap(
 final loggedInRoute = RouteMap(
   routes: {
     '/': (route) => const MaterialPage(child: HomePage()),
-    '/document/:id': (route) => MaterialPage(child: DocumentScreen(id: route.pathParameters['id']!)),
+    '/document/:id': (route) =>
+        MaterialPage(child: DocumentScreen(id: route.pathParameters['id']!)),
   },
+);
+
+final loadingRoute = RouteMap(
+  routes: {'/': (route) => const MaterialPage(child: Loader())},
 );
