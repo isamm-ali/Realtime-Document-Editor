@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:frontend/models/document_model.dart';
 import 'package:http/http.dart' as http;
 
@@ -12,9 +13,7 @@ class DocumentService {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
       },
-      body: jsonEncode({
-        'createdAt': DateTime.now().millisecondsSinceEpoch,
-      }),
+      body: jsonEncode({'createdAt': DateTime.now().millisecondsSinceEpoch}),
     );
 
     final responseData = jsonDecode(response.body);
@@ -27,12 +26,9 @@ class DocumentService {
   }
 
   Future<Map<String, dynamic>> getDocuments(String token) async {
-    final response = await http.post(
+    final response = await http.get(
       Uri.parse('$baseUrl/doc/me'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
+      headers: {'Authorization': 'Bearer $token'},
     );
 
     final responseData = jsonDecode(response.body);

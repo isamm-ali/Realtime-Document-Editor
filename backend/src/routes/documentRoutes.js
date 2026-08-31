@@ -5,4 +5,4 @@ import { createDocument, getDocuments } from '../controllers/documentController.
 export const router = express.Router();
 
 router.post('/doc/create', authenticate, createDocument);
-router.get('doc/me', authenticate, getDocuments);
+router.get('/doc/me', authenticate, getDocuments);

@@ -21,7 +21,7 @@ export const signup = async (req, res) => {
       });
       res.json({ message: "Account created successfully!" });
     } else {
-      return res.json({
+      return res.status(409).json({
         message: "User already exists!",
       });
     }

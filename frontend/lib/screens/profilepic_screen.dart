@@ -4,6 +4,8 @@ import 'package:frontend/data/avatars.dart';
 import 'package:frontend/providers/signup_provider.dart';
 import 'package:frontend/screens/home_page.dart';
 import 'package:frontend/services/auth_service.dart';
+import 'package:frontend/repositories/local_storage_repository.dart';
+import 'package:frontend/providers/user_provider.dart';
 
 class ProfilePic extends ConsumerStatefulWidget {
   const ProfilePic({super.key});
@@ -104,23 +106,26 @@ class _ProfilePicState extends ConsumerState<ProfilePic> {
                       .setPfp(avatars[selectedIndex].id);
 
                   final signupData = ref.read(signupProvider);
-
                   final result = await AuthService.signup(signupData);
-
                   if (!context.mounted) return;
-
                   if (!result['success']) {
                     ScaffoldMessenger.of(
                       context,
                     ).showSnackBar(SnackBar(content: Text(result['message'])));
-
                     return;
                   }
-
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => const HomePage()),
+                  final loginResult = await AuthService.signin(
+                    email: signupData.email,
+                    password: signupData.password,
                   );
+                  if (!loginResult['success']) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(loginResult['message'])),
+                    );
+                    return;
+                  }
+                  await LocalStorageRepository().setToken(loginResult['token']);
+                  await ref.read(userProvider.notifier).getUserData();
                 },
                 style:
                     ElevatedButton.styleFrom(
