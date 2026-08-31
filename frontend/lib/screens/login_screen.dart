@@ -29,35 +29,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }) {
     return InputDecoration(
       hintText: hintText,
-      hintStyle: const TextStyle(
-        color: _muted,
-        fontSize: 15,
-      ),
+      hintStyle: const TextStyle(color: _muted, fontSize: 15),
       suffixIcon: suffixIcon,
       filled: true,
       fillColor: _fill,
-      contentPadding: const EdgeInsets.symmetric(
-        horizontal: 20,
-        vertical: 17,
-      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 17),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(
-          color: _border,
-        ),
+        borderSide: const BorderSide(color: _border),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(
-          color: _border,
-        ),
+        borderSide: const BorderSide(color: _border),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(
-          color: _ink,
-          width: 1.4,
-        ),
+        borderSide: const BorderSide(color: _ink, width: 1.4),
       ),
     );
   }
@@ -91,9 +78,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       if (!result['success']) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              result['message'] ?? 'Invalid email or password',
-            ),
+            content: Text(result['message'] ?? 'Invalid email or password'),
             backgroundColor: Colors.red,
           ),
         );
@@ -145,19 +130,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       backgroundColor: Colors.white,
       body: Center(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 24,
-            vertical: 40,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
           child: ConstrainedBox(
-            constraints: const BoxConstraints(
-              maxWidth: 400,
-            ),
+            constraints: const BoxConstraints(maxWidth: 400),
             child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 32,
-                vertical: 40,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 40),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -175,11 +152,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ),
                       ),
                       SizedBox(width: 6),
-                      Icon(
-                        Icons.description_outlined,
-                        size: 26,
-                        color: _ink,
-                      ),
+                      Icon(Icons.description_outlined, size: 26, color: _ink),
                     ],
                   ),
 
@@ -188,10 +161,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   const Text(
                     'Welcome back',
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.black,
-                    ),
+                    style: TextStyle(fontSize: 14, color: Colors.black),
                   ),
 
                   const SizedBox(height: 36),
@@ -200,13 +170,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   TextField(
                     controller: emailController,
                     keyboardType: TextInputType.emailAddress,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      color: _ink,
-                    ),
-                    decoration: inputDecoration(
-                      hintText: 'Enter your email',
-                    ),
+                    style: const TextStyle(fontSize: 15, color: _ink),
+                    decoration: inputDecoration(hintText: 'Enter your email'),
                   ),
 
                   const SizedBox(height: 12),
@@ -215,10 +180,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   TextField(
                     controller: passwordController,
                     obscureText: obscurePassword,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      color: _ink,
-                    ),
+                    style: const TextStyle(fontSize: 15, color: _ink),
                     decoration: inputDecoration(
                       hintText: 'Enter your password',
                       suffixIcon: IconButton(
@@ -249,8 +211,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       style: TextButton.styleFrom(
                         padding: EdgeInsets.zero,
                         minimumSize: Size.zero,
-                        tapTargetSize:
-                            MaterialTapTargetSize.shrinkWrap,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
                       child: const Text(
                         'Forgot password?',
@@ -271,20 +232,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     height: 50,
                     child: ElevatedButton(
                       onPressed: isLoading ? null : signIn,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _ink,
-                        foregroundColor: Colors.white,
-                        disabledBackgroundColor: _muted,
-                        elevation: 0,
-                        shadowColor: Colors.transparent,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                      ).copyWith(
-                        overlayColor: WidgetStateProperty.all(
-                          Colors.white.withValues(alpha: 0.08),
-                        ),
-                      ),
+                      style:
+                          ElevatedButton.styleFrom(
+                            backgroundColor: _ink,
+                            foregroundColor: Colors.white,
+                            disabledBackgroundColor: _muted,
+                            elevation: 0,
+                            shadowColor: Colors.transparent,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ).copyWith(
+                            overlayColor: WidgetStateProperty.all(
+                              Colors.white.withValues(alpha: 0.08),
+                            ),
+                          ),
                       child: isLoading
                           ? const SizedBox(
                               width: 20,
@@ -313,10 +275,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     children: [
                       const Text(
                         "Don't have an account? ",
-                        style: TextStyle(
-                          color: _muted,
-                          fontSize: 13.5,
-                        ),
+                        style: TextStyle(color: _muted, fontSize: 13.5),
                       ),
                       GestureDetector(
                         onTap: () {

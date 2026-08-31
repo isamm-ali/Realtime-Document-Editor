@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:frontend/providers/signup_provider.dart';
@@ -31,10 +32,7 @@ class AuthService {
     final response = await http.post(
       Uri.parse('$baseUrl/signin'),
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'email': email,
-        'password': password,
-      }),
+      body: jsonEncode({'email': email, 'password': password}),
     );
     final responseData = jsonDecode(response.body);
     return {
@@ -47,9 +45,7 @@ class AuthService {
   Future<Map<String, dynamic>?> getUserData(String token) async {
     final response = await http.get(
       Uri.parse('$baseUrl/me'),
-      headers: {
-        'Authorization': 'Bearer $token',
-      },
+      headers: {'Authorization': 'Bearer $token'},
     );
     if (response.statusCode != 200) {
       return null;
@@ -66,5 +62,4 @@ class AuthService {
     }
     return getUserData(token);
   }
-
 }
