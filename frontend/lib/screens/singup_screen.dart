@@ -167,7 +167,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                           ref
                               .read(signupProvider.notifier)
                               .setPassword(passwordController.text.trim());
-                          Navigator.push(
+                          Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
                               builder: (context) => ProfilePic(),
