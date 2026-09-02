@@ -6,29 +6,17 @@ export const signup = async (req, res) => {
   try {
     const { username, email, password, pfp } = req.body;
     if (!username || !email || !password || !pfp) {
-      return res.status(400).json({
-        message: "All fields are required",
-      });
+      return res.status(400).json({ message: "All fields are required" });
     }
-    let user = await User.findOne({ email: email });
-    if (!user) {
-      const hashedPassword = await bcrypt.hash(password, 10);
-      user = await User.create({
-        email: email,
-        pfp: pfp,
-        username: username,
-        password: hashedPassword,
-      });
-      res.json({ message: "Account created successfully!" });
-    } else {
-      return res.status(409).json({
-        message: "User already exists!",
-      });
+    const hashedPassword = await bcrypt.hash(password, 10);
+    await User.create({ email, pfp, username, password: hashedPassword });
+    return res.json({ message: "Account created successfully!" });
+  } catch (error) {
+    if (error.code === 11000) {
+      return res.status(409).json({ message: "User already exists!" });
     }
-  } catch {
-    return res.status(500).json({
-      message: "Something went wrong",
-    });
+    console.error(error);
+    return res.status(500).json({ message: "Something went wrong" });
   }
 };
 

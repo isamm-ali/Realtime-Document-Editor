@@ -7,8 +7,27 @@ import 'package:frontend/providers/auth_repository_provider.dart';
 import 'package:frontend/providers/document_repository_provider.dart';
 import 'package:frontend/providers/user_provider.dart';
 
-class HomePage extends ConsumerWidget {
+class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
+
+  @override
+  ConsumerState<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends ConsumerState<HomePage> {
+  late Future<Map<String, dynamic>> documentsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    documentsFuture = ref.read(documentRepositoryProvider).getDocuments();
+  }
+
+  void refreshDocuments() {
+    setState(() {
+      documentsFuture = ref.read(documentRepositoryProvider).getDocuments();
+    });
+  }
 
   Future<void> signOut(WidgetRef ref) async {
     await ref.read(authRepositoryProvider).signOut();
@@ -24,7 +43,8 @@ class HomePage extends ConsumerWidget {
       if (result['success']) {
         final document = result['document'];
 
-        Routemaster.of(context).push('/document/${document['_id']}');
+        await Routemaster.of(context).push('/document/${document['_id']}');
+        refreshDocuments();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -39,7 +59,7 @@ class HomePage extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
 
     return Scaffold(
       appBar: AppBar(
@@ -56,7 +76,7 @@ class HomePage extends ConsumerWidget {
       ),
 
       body: FutureBuilder<Map<String, dynamic>>(
-        future: ref.watch(documentRepositoryProvider).getDocuments(),
+        future: documentsFuture,
 
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -93,9 +113,10 @@ class HomePage extends ConsumerWidget {
                           document.title,
                           style: TextStyle(fontSize: 17),
                         ),
-                        onTap: () {
-                          Routemaster.of(context)
+                        onTap: () async {
+                          await Routemaster.of(context)
                               .push('/document/${document.id}');
+                          refreshDocuments();
                         },
                       ),
                     ),

@@ -2,10 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/data/avatars.dart';
 import 'package:frontend/providers/signup_provider.dart';
-import 'package:frontend/screens/home_page.dart';
-import 'package:frontend/services/auth_service.dart';
-import 'package:frontend/repositories/local_storage_repository.dart';
 import 'package:frontend/providers/user_provider.dart';
+import 'package:frontend/providers/auth_repository_provider.dart';
 
 class ProfilePic extends ConsumerStatefulWidget {
   const ProfilePic({super.key});
@@ -104,9 +102,10 @@ class _ProfilePicState extends ConsumerState<ProfilePic> {
                   ref
                       .read(signupProvider.notifier)
                       .setPfp(avatars[selectedIndex].id);
-
                   final signupData = ref.read(signupProvider);
-                  final result = await AuthService.signup(signupData);
+                  final authRepo = ref.read(authRepositoryProvider);
+
+                  final result = await authRepo.signup(signupData);
                   if (!context.mounted) return;
                   if (!result['success']) {
                     ScaffoldMessenger.of(
@@ -114,7 +113,7 @@ class _ProfilePicState extends ConsumerState<ProfilePic> {
                     ).showSnackBar(SnackBar(content: Text(result['message'])));
                     return;
                   }
-                  final loginResult = await AuthService.signin(
+                  final loginResult = await authRepo.signin(
                     email: signupData.email,
                     password: signupData.password,
                   );
@@ -124,7 +123,6 @@ class _ProfilePicState extends ConsumerState<ProfilePic> {
                     );
                     return;
                   }
-                  await LocalStorageRepository().setToken(loginResult['token']);
                   await ref.read(userProvider.notifier).getUserData();
                 },
                 style:
