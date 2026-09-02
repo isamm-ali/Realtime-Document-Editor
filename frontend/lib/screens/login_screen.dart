@@ -50,8 +50,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> signIn() async {
-    if (emailController.text.trim().isEmpty ||
-        passwordController.text.isEmpty) {
+    final email = emailController.text.trim();
+    final password = passwordController.text;
+
+    if (email.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('All fields are required'),
@@ -66,16 +68,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     });
 
     try {
-      final result = await ref
-          .read(authRepositoryProvider)
-          .signin(
-            email: emailController.text.trim(),
-            password: passwordController.text.trim(),
-          );
+      final authRepo = ref.read(authRepositoryProvider);
+
+      // Make sure a previous session cannot leak into this login.
+      await authRepo.signOut();
+      ref.read(userProvider.notifier).logout();
+
+      final result = await authRepo.signin(email: email, password: password);
 
       if (!mounted) return;
 
-      if (!result['success']) {
+      if (result['success'] != true) {
+        setState(() {
+          isLoading = false;
+        });
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(result['message'] ?? 'Invalid email or password'),
@@ -83,21 +90,32 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           ),
         );
 
+        return;
+      }
+
+      final user = await authRepo.getUserData();
+
+      if (!mounted) return;
+
+      if (user == null) {
+        await authRepo.signOut();
+        ref.read(userProvider.notifier).logout();
+
         setState(() {
           isLoading = false;
         });
 
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Login session could not be verified'),
+            backgroundColor: Colors.red,
+          ),
+        );
+
         return;
       }
 
-      await ref.read(userProvider.notifier).getUserData();
-
-      if (!mounted) return;
-
-      setState(() {
-        isLoading = false;
-      });
-
+      ref.read(userProvider.notifier).setUser(user);
     } catch (e) {
       if (!mounted) return;
 

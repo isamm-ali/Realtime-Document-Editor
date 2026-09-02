@@ -30,7 +30,9 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   Future<void> signOut(WidgetRef ref) async {
-    await ref.read(authRepositoryProvider).signOut();
+    final authRepo = ref.read(authRepositoryProvider);
+    await authRepo.signOut();
+    if (!mounted) return;
     ref.read(userProvider.notifier).logout();
   }
 
@@ -60,7 +62,6 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       appBar: AppBar(
         actions: [

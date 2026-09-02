@@ -7,11 +7,16 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 
 void main() {
-  runApp(const ProviderScope(child: MyApp()));
+  runApp(
+    const ProviderScope(
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends ConsumerStatefulWidget {
   const MyApp({super.key});
+
   @override
   ConsumerState<MyApp> createState() => _MyAppState();
 }
@@ -20,8 +25,11 @@ class _MyAppState extends ConsumerState<MyApp> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() {
-      ref.read(userProvider.notifier).getUserData();
+
+    Future.microtask(() async {
+      await ref
+          .read(userProvider.notifier)
+          .getUserData();
     });
   }
 
@@ -29,13 +37,18 @@ class _MyAppState extends ConsumerState<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
+
       localizationsDelegates: const [
         FlutterQuillLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      supportedLocales: const [Locale('en')],
+
+      supportedLocales: const [
+        Locale('en'),
+      ],
+
       routerDelegate: RoutemasterDelegate(
         routesBuilder: (context) {
           final userState = ref.watch(userProvider);
@@ -48,7 +61,8 @@ class _MyAppState extends ConsumerState<MyApp> {
           return loggedOutRoute;
         },
       ),
-      routeInformationParser: const RoutemasterParser(),
+      routeInformationParser:
+          const RoutemasterParser(),
     );
   }
 }

@@ -20,7 +20,7 @@ class SignupNotifier extends Notifier<SignupState> {
     return const SignupState();
   }
 
-   void setUsername(String username) {
+  void setUsername(String username) {
     state = SignupState(
       username: username,
       email: state.email,
@@ -55,9 +55,12 @@ class SignupNotifier extends Notifier<SignupState> {
       pfp: pfp,
     );
   }
+
+  void reset() {
+    state = const SignupState();
+  }
 }
 
-final signupProvider =
-    NotifierProvider<SignupNotifier, SignupState>(
+final signupProvider = NotifierProvider<SignupNotifier, SignupState>(
   SignupNotifier.new,
 );

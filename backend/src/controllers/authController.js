@@ -2,46 +2,99 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { User } from "../models/user.js";
 
+const normalizeEmail = (email) => email?.trim().toLowerCase();
+
+const createToken = (userId) => {
+  const secret = process.env.JWT_SECRET;
+  return jwt.sign(
+    {
+      userId: userId.toString(),
+    },
+    secret,
+    {
+      expiresIn: "7d",
+    },
+  );
+};
+
+const publicUser = (user) => ({
+  _id: user._id,
+  username: user.username,
+  email: user.email,
+  pfp: user.pfp,
+});
+
 export const signup = async (req, res) => {
   try {
-    const { username, password, pfp } = req.body;
-    const email = req.body.email?.trim().toLowerCase();
+    const username = req.body.username?.trim();
+    const email = normalizeEmail(req.body.email);
+    const password = req.body.password;
+    const pfp = req.body.pfp?.trim();
     if (!username || !email || !password || !pfp) {
-      return res.status(400).json({ message: "All fields are required" });
+      return res.status(400).json({
+        message: "All fields are required",
+      });
+    }
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(409).json({
+        message: "User already exists!",
+      });
     }
     const hashedPassword = await bcrypt.hash(password, 10);
-    await User.create({ email, pfp, username, password: hashedPassword });
-    return res.json({ message: "Account created successfully!" });
+    const user = await User.create({
+      username,
+      email,
+      password: hashedPassword,
+      pfp,
+    });
+    return res.status(201).json({
+      message: "Account created successfully!",
+      user: publicUser(user),
+    });
   } catch (error) {
-    if (error.code === 11000) {
-      return res.status(409).json({ message: "User already exists!" });
+    if (error?.code === 11000) {
+      return res.status(409).json({
+        message: "User already exists!",
+      });
     }
-    console.error(error);
-    return res.status(500).json({ message: "Something went wrong" });
+    console.error("Signup error:", error);
+    return res.status(500).json({
+      message: "Something went wrong",
+    });
   }
 };
 
 export const signin = async (req, res) => {
   try {
-    const email = req.body.email?.trim().toLowerCase();
+    const email = normalizeEmail(req.body.email);
     const password = req.body.password;
+
+    if (!email || !password) {
+      return res.status(400).json({
+        message: "Email and password are required",
+      });
+    }
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(401).json({ message: "Email or Password is invalid" });
-    } else {
-      const passMatch = await bcrypt.compare(password, user.password);
-      if (passMatch) {
-        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
-          expiresIn: "7d",
-        });
-        return res.status(200).json({ message: "Login successful!", token });
-      } else {
-        return res
-          .status(401)
-          .json({ message: "Email or Password is invalid" });
-      }
+      return res.status(401).json({
+        message: "Email or Password is invalid",
+      });
     }
-  } catch {
+    const passwordMatches = await bcrypt.compare(password, user.password);
+    if (!passwordMatches) {
+      return res.status(401).json({
+        message: "Email or Password is invalid",
+      });
+    }
+    const token = createToken(user._id);
+    return res.status(200).json({
+      message: "Login successful!",
+      token,
+      user: publicUser(user),
+    });
+  } catch (error) {
+    console.error("Signin error:", error);
     return res.status(500).json({
       message: "Something went wrong",
     });
@@ -59,7 +112,8 @@ export const getinfo = async (req, res) => {
     return res.status(200).json({
       user,
     });
-  } catch {
+  } catch (error) {
+    console.error("Get user info error:", error);
     return res.status(500).json({
       message: "Something went wrong",
     });

@@ -1,9 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:frontend/services/auth_service.dart';
+import 'package:frontend/providers/auth_repository_provider.dart';
 
 class UserState {
   final Map<String, dynamic>? user;
   final bool isLoading;
+
   const UserState({this.user, this.isLoading = true});
 }
 
@@ -14,8 +15,17 @@ class UserNotifier extends Notifier<UserState> {
   }
 
   Future<void> getUserData() async {
-    final user = await AuthService().getStoredUserData();
+    state = UserState(user: state.user, isLoading: true);
+    try {
+      final user = await ref.read(authRepositoryProvider).getUserData();
 
+      state = UserState(user: user, isLoading: false);
+    } catch (_) {
+      state = const UserState(user: null, isLoading: false);
+    }
+  }
+
+  void setUser(Map<String, dynamic> user) {
     state = UserState(user: user, isLoading: false);
   }
 

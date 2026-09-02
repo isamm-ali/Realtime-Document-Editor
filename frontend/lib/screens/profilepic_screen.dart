@@ -14,12 +14,12 @@ class ProfilePic extends ConsumerStatefulWidget {
 
 class _ProfilePicState extends ConsumerState<ProfilePic> {
   int selectedIndex = 0;
+  bool isLoading = false;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-
       appBar: AppBar(
         backgroundColor: Colors.white,
         title: const Text(
@@ -28,7 +28,6 @@ class _ProfilePicState extends ConsumerState<ProfilePic> {
         ),
         centerTitle: true,
       ),
-
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
         child: Column(
@@ -45,36 +44,38 @@ class _ProfilePicState extends ConsumerState<ProfilePic> {
             ),
 
             const SizedBox(height: 25),
-            Text(
+
+            const Text(
               'Pick an Avatar',
               style: TextStyle(
                 color: Colors.black,
                 fontSize: 15,
-                fontWeight: FontWeight(400),
+                fontWeight: FontWeight.w400,
               ),
             ),
+
             const SizedBox(height: 15),
+
             GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 4,
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 12,
               ),
-
               itemCount: avatars.length,
-
               itemBuilder: (context, index) {
                 final isSelected = selectedIndex == index;
 
                 return GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      selectedIndex = index;
-                    });
-                  },
+                  onTap: isLoading
+                      ? null
+                      : () {
+                          setState(() {
+                            selectedIndex = index;
+                          });
+                        },
                   child: Container(
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
@@ -93,72 +94,137 @@ class _ProfilePicState extends ConsumerState<ProfilePic> {
                 );
               },
             ),
-            SizedBox(height: 20),
+
+            const SizedBox(height: 20),
+
             SizedBox(
               width: double.infinity,
               height: 40,
               child: ElevatedButton(
-                onPressed: () async {
-                  ref
-                      .read(signupProvider.notifier)
-                      .setPfp(avatars[selectedIndex].id);
-                  final signupData = ref.read(signupProvider);
-                  final authRepo = ref.read(authRepositoryProvider);
-
-                  final result = await authRepo.signup(signupData);
-                  if (!context.mounted) return;
-                  if (!result['success']) {
-                    ScaffoldMessenger.of(
-                      context,
-                    ).showSnackBar(SnackBar(content: Text(result['message'])));
-                    return;
-                  }
-                  final loginResult = await authRepo.signin(
-                    email: signupData.email,
-                    password: signupData.password,
-                  );
-                  if (!loginResult['success']) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(loginResult['message'])),
-                    );
-                    return;
-                  }
-                  await ref.read(userProvider.notifier).getUserData();
-                },
-                style:
-                    ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      shadowColor: Colors.transparent,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                    ).copyWith(
-                      overlayColor: WidgetStateProperty.all(
-                        Colors.white.withValues(alpha: 0.08),
-                      ),
-                    ),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Continue',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.2,
-                      ),
-                    ),
-                    SizedBox(width: 8),
-                    Icon(Icons.arrow_forward, size: 18),
-                  ],
+                onPressed: isLoading ? null : createAccount,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                  disabledBackgroundColor: Colors.grey,
+                  elevation: 0,
+                  shadowColor: Colors.transparent,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
                 ),
+                child: isLoading
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Continue',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 0.2,
+                            ),
+                          ),
+                          SizedBox(width: 8),
+                          Icon(Icons.arrow_forward, size: 18),
+                        ],
+                      ),
               ),
             ),
           ],
         ),
       ),
     );
+  }
+
+  Future<void> createAccount() async {
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      final signupNotifier = ref.read(signupProvider.notifier);
+      signupNotifier.setPfp(avatars[selectedIndex].id);
+      final signupData = ref.read(signupProvider);
+      final authRepo = ref.read(authRepositoryProvider);
+      await authRepo.signOut();
+      ref.read(userProvider.notifier).logout();
+      final signupResult = await authRepo.signup(signupData);
+      if (!mounted) return;
+
+      if (signupResult['success'] != true) {
+        setState(() {
+          isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              signupResult['message'] ?? 'Could not create account',
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+      final loginResult = await authRepo.signin(
+        email: signupData.email,
+        password: signupData.password,
+      );
+      if (!mounted) return;
+      if (loginResult['success'] != true) {
+        await authRepo.signOut();
+        ref.read(userProvider.notifier).logout();
+        setState(() {
+          isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              loginResult['message'] ?? 'Account was created but login failed',
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+      final user = await authRepo.getUserData();
+      if (!mounted) return;
+      if (user == null) {
+        await authRepo.signOut();
+        ref.read(userProvider.notifier).logout();
+        setState(() {
+          isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Account was created but the session could not be verified',
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+      ref.read(userProvider.notifier).setUser(user);
+      ref.read(signupProvider.notifier).reset();
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Something went wrong: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 }
