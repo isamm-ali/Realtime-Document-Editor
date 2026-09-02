@@ -2,7 +2,7 @@
 
 A Google Docs-style document editor built from scratch with Flutter, Node.js, MongoDB and Socket.IO.
 
-![Document Editor](https://raw.githubusercontent.com/isamm-ali/Realtime-Document-Editor/main/images/editor.png)
+![Document Editor](https://raw.githubusercontent.com/isamm-ali/Realtime-Document-Editor/main/images/image1.png)
 
 The project started as a way to learn how a collaborative editor actually works beyond the UI. It now has authentication, document storage, a rich text editor, real-time document updates and automatic saving.
 

@@ -26,38 +26,55 @@ class _DocumentScreenState extends ConsumerState<DocumentScreen> {
   final SocketRepository socketRepository = SocketRepository();
 
   @override
-  void initState() {
-    super.initState();
+  @override
+void initState() {
+  super.initState();
 
-    socketRepository.joinRoom(widget.id);
-    fetchDocumentData();
+  socketRepository.joinRoom(widget.id);
 
-    socketRepository.changeListener((data) {
+  fetchDocumentData();
+
+  socketRepository.changeListener((data) {
+    debugPrint('RECEIVED CHANGES: $data');
+
+    if (!mounted) return;
+
+    final delta = data['delta'];
+
+    if (delta is List) {
       quillController.compose(
-        Delta.fromJson(data['delta']),
+        Delta.fromJson(delta),
         quillController.selection,
         ChangeSource.remote,
       );
-    });
+    }
+  });
 
-    quillController.document.changes.listen((event) {
-      if (event.source == ChangeSource.local) {
-        final Map<String, dynamic> data = {
-          'delta': event.change,
-          'room': widget.id,
-        };
+  quillController.document.changes.listen((event) {
+    if (event.source == ChangeSource.local) {
+      debugPrint('SENDING TYPING: ${event.change}');
 
-        socketRepository.typing(data);
-      }
-    });
+      final data = <String, dynamic>{
+        'delta': event.change.toJson(),
+        'room': widget.id,
+      };
 
-    Timer.periodic(const Duration(seconds: 2), (timer) {
-      socketRepository.autoSave(<String, dynamic>{
-        'delta': quillController.document.toDelta().toJson(),
-        'documentId': widget.id,
-      });
-    });
-  }
+      socketRepository.typing(data);
+    }
+  });
+
+  Timer.periodic(
+    const Duration(seconds: 2),
+    (timer) {
+      socketRepository.autoSave(
+        <String, dynamic>{
+          'delta': quillController.document.toDelta().toJson(),
+          'documentId': widget.id,
+        },
+      );
+    },
+  );
+}
 
   Future<void> fetchDocumentData() async {
     final result = await ref
@@ -116,10 +133,7 @@ class _DocumentScreenState extends ConsumerState<DocumentScreen> {
           preferredSize: const Size.fromHeight(1),
           child: Container(
             decoration: BoxDecoration(
-              border: Border.all(
-                color: Colors.grey.shade800,
-                width: 0.1,
-              ),
+              border: Border.all(color: Colors.grey.shade800, width: 0.1),
             ),
           ),
         ),
@@ -152,9 +166,7 @@ class _DocumentScreenState extends ConsumerState<DocumentScreen> {
                       color: Color.fromRGBO(26, 115, 232, 1),
                     ),
                   ),
-                  contentPadding: EdgeInsets.only(
-                    left: isPhone ? 6 : 10,
-                  ),
+                  contentPadding: EdgeInsets.only(left: isPhone ? 6 : 10),
                   isDense: true,
                 ),
               ),
@@ -202,9 +214,7 @@ class _DocumentScreenState extends ConsumerState<DocumentScreen> {
               width: double.infinity,
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
-                padding: EdgeInsets.symmetric(
-                  horizontal: isPhone ? 4 : 10,
-                ),
+                padding: EdgeInsets.symmetric(horizontal: isPhone ? 4 : 10),
                 child: QuillSimpleToolbar(
                   controller: quillController,
                   config: const QuillSimpleToolbarConfig(),
@@ -217,8 +227,8 @@ class _DocumentScreenState extends ConsumerState<DocumentScreen> {
                 width: isPhone
                     ? double.infinity
                     : screenWidth > 1100
-                        ? 1000
-                        : screenWidth * 0.9,
+                    ? 1000
+                    : screenWidth * 0.9,
                 margin: EdgeInsets.symmetric(
                   horizontal: isPhone ? 6 : 16,
                   vertical: isPhone ? 6 : 10,
@@ -227,9 +237,7 @@ class _DocumentScreenState extends ConsumerState<DocumentScreen> {
                   color: Colors.white,
                   elevation: 5,
                   child: Padding(
-                    padding: EdgeInsets.all(
-                      isPhone ? 16 : 30,
-                    ),
+                    padding: EdgeInsets.all(isPhone ? 16 : 30),
                     child: QuillEditor.basic(
                       controller: quillController,
                       config: const QuillEditorConfig(),

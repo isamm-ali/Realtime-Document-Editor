@@ -12,6 +12,20 @@ class SignupState {
     this.password = '',
     this.pfp = '',
   });
+
+  SignupState copyWith({
+    String? username,
+    String? email,
+    String? password,
+    String? pfp,
+  }) {
+    return SignupState(
+      username: username ?? this.username,
+      email: email ?? this.email,
+      password: password ?? this.password,
+      pfp: pfp ?? this.pfp,
+    );
+  }
 }
 
 class SignupNotifier extends Notifier<SignupState> {
@@ -20,40 +34,32 @@ class SignupNotifier extends Notifier<SignupState> {
     return const SignupState();
   }
 
-  void setUsername(String username) {
-    state = SignupState(
-      username: username,
-      email: state.email,
-      password: state.password,
-      pfp: state.pfp,
+  void setCredentials({
+    required String username,
+    required String email,
+    required String password,
+  }) {
+    state = state.copyWith(
+      username: username.trim(),
+      email: email.trim().toLowerCase(),
+      password: password,
     );
+  }
+
+  void setUsername(String username) {
+    state = state.copyWith(username: username);
   }
 
   void setEmail(String email) {
-    state = SignupState(
-      username: state.username,
-      email: email,
-      password: state.password,
-      pfp: state.pfp,
-    );
+    state = state.copyWith(email: email);
   }
 
   void setPassword(String password) {
-    state = SignupState(
-      username: state.username,
-      email: state.email,
-      password: password,
-      pfp: state.pfp,
-    );
+    state = state.copyWith(password: password);
   }
 
   void setPfp(String pfp) {
-    state = SignupState(
-      username: state.username,
-      email: state.email,
-      password: state.password,
-      pfp: pfp,
-    );
+    state = state.copyWith(pfp: pfp);
   }
 
   void reset() {

@@ -18,163 +18,84 @@ class _ProfilePicState extends ConsumerState<ProfilePic> {
   bool isLoading = false;
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        title: const Text(
-          'Avatar',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
-        ),
-        centerTitle: true,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-        child: Column(
-          children: [
-            Container(
-              width: 140,
-              height: 140,
-              decoration: const BoxDecoration(shape: BoxShape.circle),
-              clipBehavior: Clip.antiAlias,
-              child: Image.asset(
-                avatars[selectedIndex].asset,
-                fit: BoxFit.cover,
-              ),
-            ),
+  void initState() {
+    super.initState();
 
-            const SizedBox(height: 25),
+    final signup = ref.read(signupProvider);
 
-            const Text(
-              'Pick an Avatar',
-              style: TextStyle(
-                color: Colors.black,
-                fontSize: 15,
-                fontWeight: FontWeight.w400,
-              ),
-            ),
+    if (signup.pfp.isNotEmpty) {
+      final savedIndex = avatars.indexWhere(
+        (avatar) => avatar.id == signup.pfp,
+      );
 
-            const SizedBox(height: 15),
-
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 4,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-              ),
-              itemCount: avatars.length,
-              itemBuilder: (context, index) {
-                final isSelected = selectedIndex == index;
-
-                return GestureDetector(
-                  onTap: isLoading
-                      ? null
-                      : () {
-                          setState(() {
-                            selectedIndex = index;
-                          });
-                        },
-                  child: Container(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: isSelected
-                          ? Border.all(color: Colors.red, width: 3)
-                          : null,
-                    ),
-                    padding: const EdgeInsets.all(3),
-                    child: ClipOval(
-                      child: Image.asset(
-                        avatars[index].asset,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-
-            const SizedBox(height: 20),
-
-            SizedBox(
-              width: double.infinity,
-              height: 40,
-              child: ElevatedButton(
-                onPressed: isLoading ? null : createAccount,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  foregroundColor: Colors.white,
-                  disabledBackgroundColor: Colors.grey,
-                  elevation: 0,
-                  shadowColor: Colors.transparent,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
-                child: isLoading
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'Continue',
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w600,
-                              letterSpacing: 0.2,
-                            ),
-                          ),
-                          SizedBox(width: 8),
-                          Icon(Icons.arrow_forward, size: 18),
-                        ],
-                      ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+      if (savedIndex >= 0) {
+        selectedIndex = savedIndex;
+      }
+    }
   }
 
   Future<void> createAccount() async {
     if (isLoading) return;
+
+    final signup = ref.read(signupProvider);
+
+    final username = signup.username.trim();
+    final email = signup.email.trim().toLowerCase();
+    final password = signup.password;
+    final pfp = avatars[selectedIndex].id.trim();
+
+    // This is a real error now, not something we silently
+    // recover from by throwing the user back to signup.
+    if (username.isEmpty || email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Signup information is missing. Please go back and enter it again.',
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    if (pfp.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select an avatar'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    // Create ONE immutable snapshot of everything we are sending.
+    final signupData = SignupState(
+      username: username,
+      email: email,
+      password: password,
+      pfp: pfp,
+    );
+
+    // Save the avatar into the draft too.
+    ref.read(signupProvider.notifier).setPfp(pfp);
 
     setState(() {
       isLoading = true;
     });
 
     try {
-      final signupNotifier = ref.read(signupProvider.notifier);
-      signupNotifier.setPfp(avatars[selectedIndex].id);
-
-      final currentSignup = ref.read(signupProvider);
-      final signupData = SignupState(
-        username: currentSignup.username,
-        email: currentSignup.email,
-        password: currentSignup.password,
-        pfp: currentSignup.pfp,
-      );
-
       final authRepo = ref.read(authRepositoryProvider);
-      await authRepo.signOut();
-      ref.read(userProvider.notifier).logout();
 
+      // Create the account.
       final signupResult = await authRepo.signup(signupData);
+
       if (!mounted) return;
 
       if (signupResult['success'] != true) {
         setState(() {
           isLoading = false;
         });
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -183,63 +104,78 @@ class _ProfilePicState extends ConsumerState<ProfilePic> {
             backgroundColor: Colors.red,
           ),
         );
+
         return;
       }
 
+      // Automatically sign the new user in.
       final loginResult = await authRepo.signin(
         email: signupData.email,
         password: signupData.password,
       );
+
       if (!mounted) return;
+
       if (loginResult['success'] != true) {
         setState(() {
           isLoading = false;
         });
-        ref.read(signupProvider.notifier).reset();
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
               loginResult['message'] ??
-                  'Account created — please sign in',
+                  'Account created, but automatic login failed.',
             ),
             backgroundColor: Colors.red,
           ),
         );
 
-        Routemaster.of(context).replace('/');
         return;
       }
 
       final rawUser = loginResult['user'];
-      final user = rawUser is Map ? Map<String, dynamic>.from(rawUser) : null;
 
-      if (user == null) {
+      if (rawUser is! Map) {
         setState(() {
           isLoading = false;
         });
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Account was created but user data was not returned'),
+            content: Text(
+              'Account created, but user information was not returned.',
+            ),
             backgroundColor: Colors.red,
           ),
         );
+
         return;
       }
 
+      final user = Map<String, dynamic>.from(rawUser);
+
+      // Authentication is now complete.
       ref.read(userProvider.notifier).setUser(user);
+
+      // Signup draft is no longer needed.
       ref.read(signupProvider.notifier).reset();
 
-      if (mounted) {
-        setState(() {
-          isLoading = false;
-        });
-      }
-    } catch (e) {
       if (!mounted) return;
+
       setState(() {
         isLoading = false;
       });
+
+      // Explicitly leave the avatar route.
+      Routemaster.of(context).replace('/');
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        isLoading = false;
+      });
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Something went wrong: $e'),
@@ -247,5 +183,147 @@ class _ProfilePicState extends ConsumerState<ProfilePic> {
         ),
       );
     }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        surfaceTintColor: Colors.white,
+        title: const Text(
+          'Avatar',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w500,
+            color: Colors.black,
+          ),
+        ),
+        centerTitle: true,
+      ),
+
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+          child: Column(
+            children: [
+              const SizedBox(height: 10),
+
+              Container(
+                width: 140,
+                height: 140,
+                decoration: const BoxDecoration(shape: BoxShape.circle),
+                clipBehavior: Clip.antiAlias,
+                child: Image.asset(
+                  avatars[selectedIndex].asset,
+                  fit: BoxFit.cover,
+                ),
+              ),
+
+              const SizedBox(height: 25),
+
+              const Text(
+                'Pick an Avatar',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+
+              const SizedBox(height: 15),
+
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 4,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                ),
+                itemCount: avatars.length,
+                itemBuilder: (context, index) {
+                  final isSelected = selectedIndex == index;
+
+                  return GestureDetector(
+                    onTap: isLoading
+                        ? null
+                        : () {
+                            setState(() {
+                              selectedIndex = index;
+                            });
+                          },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: isSelected
+                            ? Border.all(color: Colors.red, width: 3)
+                            : null,
+                      ),
+                      padding: const EdgeInsets.all(3),
+                      child: ClipOval(
+                        child: Image.asset(
+                          avatars[index].asset,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+
+              const SizedBox(height: 25),
+
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton(
+                  onPressed: isLoading ? null : createAccount,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    foregroundColor: Colors.white,
+                    disabledBackgroundColor: Colors.grey,
+                    elevation: 0,
+                    shadowColor: Colors.transparent,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  child: isLoading
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'Continue',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0.2,
+                              ),
+                            ),
+                            SizedBox(width: 8),
+                            Icon(Icons.arrow_forward, size: 18),
+                          ],
+                        ),
+                ),
+              ),
+
+              const SizedBox(height: 15),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
