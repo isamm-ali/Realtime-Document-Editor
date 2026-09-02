@@ -49,4 +49,44 @@ class DocumentService {
       'documents': documents,
     };
   }
+
+  Future<Map<String, dynamic>> getDocument(String token, String id) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/doc/$id'),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+    final responseData = jsonDecode(response.body);
+    return {
+      'success': response.statusCode == 200,
+      'message': response.statusCode == 200
+          ? 'Document fetched successfully'
+          : responseData['message'] ?? 'Something went wrong',
+      'document': response.statusCode == 200
+          ? DocumentModel.fromJson(responseData)
+          : null,
+    };
+  }
+
+  Future<Map<String, dynamic>> nameDocuments({
+    required String token,
+    required String id,
+    required String title,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/doc/name'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({'id': id, 'title': title}),
+    );
+    final responseData = jsonDecode(response.body);
+    return {
+      'success': response.statusCode == 200,
+      'message': responseData['message'] ?? 'Something went wrong',
+      'document': response.statusCode == 200
+          ? DocumentModel.fromJson(responseData)
+          : null,
+    };
+  }
 }

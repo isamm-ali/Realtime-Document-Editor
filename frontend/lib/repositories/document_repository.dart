@@ -25,4 +25,31 @@ class DocumentRepository {
     }
     return await documentService.getDocuments(token);
   }
+
+  Future<Map<String, dynamic>> getDocument({required String id}) async {
+    final token = await localStorage.getToken();
+
+    if (token == null) {
+      throw Exception('User is not authenticated');
+    }
+
+    return await documentService.getDocument(token, id);
+  }
+
+  Future<Map<String, dynamic>> nameDocuments({
+    required String id,
+    required String title,
+  }) async {
+    final token = await localStorage.getToken();
+
+    if (token == null) {
+      throw Exception('User is not authenticated');
+    }
+
+    return await documentService.nameDocuments(
+      token: token,
+      id: id,
+      title: title,
+    );
+  }
 }
