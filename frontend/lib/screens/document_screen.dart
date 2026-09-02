@@ -12,6 +12,7 @@ import 'dart:async';
 class DocumentScreen extends ConsumerStatefulWidget {
   final String id;
   const DocumentScreen({Key? key, required this.id}) : super(key: key);
+
   @override
   ConsumerState<DocumentScreen> createState() => _DocumentScreenState();
 }
@@ -20,14 +21,17 @@ class _DocumentScreenState extends ConsumerState<DocumentScreen> {
   final TextEditingController nameController = TextEditingController(
     text: 'Untitled Document',
   );
+
   final QuillController quillController = QuillController.basic();
   final SocketRepository socketRepository = SocketRepository();
 
   @override
   void initState() {
     super.initState();
+
     socketRepository.joinRoom(widget.id);
     fetchDocumentData();
+
     socketRepository.changeListener((data) {
       quillController.compose(
         Delta.fromJson(data['delta']),
@@ -59,13 +63,16 @@ class _DocumentScreenState extends ConsumerState<DocumentScreen> {
     final result = await ref
         .read(documentRepositoryProvider)
         .getDocument(id: widget.id);
+
     if (result['success']) {
       final DocumentModel document = result['document'];
 
       final quillDocument = document.content.isNotEmpty
           ? Document.fromJson(document.content)
           : Document();
+
       quillController.document = quillDocument;
+
       if (mounted) {
         setState(() {
           nameController.text = document.title;
@@ -85,7 +92,9 @@ class _DocumentScreenState extends ConsumerState<DocumentScreen> {
     final result = await ref
         .read(documentRepositoryProvider)
         .nameDocuments(id: widget.id, title: name);
+
     if (!mounted) return;
+
     if (result['success']) {
       final DocumentModel updatedDocument = result['document'];
       print(updatedDocument.title);
@@ -94,28 +103,88 @@ class _DocumentScreenState extends ConsumerState<DocumentScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isPhone = screenWidth < 600;
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
+        automaticallyImplyLeading: false,
+        toolbarHeight: isPhone ? 60 : 64,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Container(
             decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey.shade800, width: 0.1),
+              border: Border.all(
+                color: Colors.grey.shade800,
+                width: 0.1,
+              ),
             ),
           ),
         ),
+        titleSpacing: isPhone ? 10 : 16,
+        title: Row(
+          children: [
+            GestureDetector(
+              onTap: () {
+                Routemaster.of(context).replace('/');
+              },
+              child: Image.asset(
+                'assets/logo/docs-logo.png',
+                height: isPhone ? 28 : 30,
+                width: isPhone ? 21 : 23,
+              ),
+            ),
+            SizedBox(width: isPhone ? 8 : 10),
+            Expanded(
+              child: TextField(
+                controller: nameController,
+                onSubmitted: (value) {
+                  if (value.trim().isNotEmpty) {
+                    nameDocument(value.trim());
+                  }
+                },
+                decoration: InputDecoration(
+                  border: InputBorder.none,
+                  focusedBorder: const OutlineInputBorder(
+                    borderSide: BorderSide(
+                      color: Color.fromRGBO(26, 115, 232, 1),
+                    ),
+                  ),
+                  contentPadding: EdgeInsets.only(
+                    left: isPhone ? 6 : 10,
+                  ),
+                  isDense: true,
+                ),
+              ),
+            ),
+          ],
+        ),
         actions: [
           Padding(
-            padding: const EdgeInsets.all(10),
+            padding: EdgeInsets.all(isPhone ? 7 : 10),
             child: ElevatedButton.icon(
               onPressed: () {},
-              icon: const Icon(Icons.lock, size: 16, color: Colors.white),
-              label: const Text('Share', style: TextStyle(color: Colors.white)),
+              icon: Icon(
+                Icons.lock,
+                size: isPhone ? 14 : 16,
+                color: Colors.white,
+              ),
+              label: Text(
+                'Share',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: isPhone ? 13 : 14,
+                ),
+              ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color.fromRGBO(26, 115, 232, 1),
                 elevation: 0,
+                padding: EdgeInsets.symmetric(
+                  horizontal: isPhone ? 10 : 14,
+                  vertical: isPhone ? 8 : 10,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
@@ -123,62 +192,44 @@ class _DocumentScreenState extends ConsumerState<DocumentScreen> {
             ),
           ),
         ],
-        title: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 9),
-          child: Row(
-            children: [
-              GestureDetector(
-                onTap: () {
-                  Routemaster.of(context).replace('/');
-                },
-                child: Image.asset(
-                  'assets/logo/docs-logo.png',
-                  height: 30,
-                  width: 23,
-                ),
-              ),
-              const SizedBox(width: 10),
-              SizedBox(
-                width: 180,
-                child: TextField(
-                  controller: nameController,
-                  onSubmitted: (value) {
-                    if (value.trim().isNotEmpty) {
-                      nameDocument(value.trim());
-                    }
-                  },
-                  decoration: const InputDecoration(
-                    border: InputBorder.none,
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(
-                        color: Color.fromRGBO(26, 115, 232, 1),
-                      ),
-                    ),
-                    contentPadding: EdgeInsets.only(left: 10),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
       ),
       body: Center(
         child: Column(
           children: [
-            const SizedBox(height: 10),
+            SizedBox(height: isPhone ? 6 : 10),
 
-            QuillSimpleToolbar(
-              controller: quillController,
-              config: const QuillSimpleToolbarConfig(),
+            SizedBox(
+              width: double.infinity,
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                padding: EdgeInsets.symmetric(
+                  horizontal: isPhone ? 4 : 10,
+                ),
+                child: QuillSimpleToolbar(
+                  controller: quillController,
+                  config: const QuillSimpleToolbarConfig(),
+                ),
+              ),
             ),
 
             Expanded(
-              child: SizedBox(
+              child: Container(
+                width: isPhone
+                    ? double.infinity
+                    : screenWidth > 1100
+                        ? 1000
+                        : screenWidth * 0.9,
+                margin: EdgeInsets.symmetric(
+                  horizontal: isPhone ? 6 : 16,
+                  vertical: isPhone ? 6 : 10,
+                ),
                 child: Card(
                   color: Colors.white,
                   elevation: 5,
                   child: Padding(
-                    padding: const EdgeInsets.all(30),
+                    padding: EdgeInsets.all(
+                      isPhone ? 16 : 30,
+                    ),
                     child: QuillEditor.basic(
                       controller: quillController,
                       config: const QuillEditorConfig(),

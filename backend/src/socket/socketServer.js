@@ -1,4 +1,4 @@
-import { Document } from "../models/document";
+import { Document } from "../models/document.js";
 
 const saveData = async (data) => {
   let document = await Document.findById(data.documentId);

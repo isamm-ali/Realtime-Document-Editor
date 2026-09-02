@@ -4,6 +4,7 @@ import 'package:frontend/data/avatars.dart';
 import 'package:frontend/providers/signup_provider.dart';
 import 'package:frontend/providers/user_provider.dart';
 import 'package:frontend/providers/auth_repository_provider.dart';
+import 'package:routemaster/routemaster.dart';
 
 class ProfilePic extends ConsumerStatefulWidget {
   const ProfilePic({super.key});
@@ -145,6 +146,8 @@ class _ProfilePicState extends ConsumerState<ProfilePic> {
   }
 
   Future<void> createAccount() async {
+    if (isLoading) return;
+
     setState(() {
       isLoading = true;
     });
@@ -152,10 +155,19 @@ class _ProfilePicState extends ConsumerState<ProfilePic> {
     try {
       final signupNotifier = ref.read(signupProvider.notifier);
       signupNotifier.setPfp(avatars[selectedIndex].id);
-      final signupData = ref.read(signupProvider);
+
+      final currentSignup = ref.read(signupProvider);
+      final signupData = SignupState(
+        username: currentSignup.username,
+        email: currentSignup.email,
+        password: currentSignup.password,
+        pfp: currentSignup.pfp,
+      );
+
       final authRepo = ref.read(authRepositoryProvider);
       await authRepo.signOut();
       ref.read(userProvider.notifier).logout();
+
       final signupResult = await authRepo.signup(signupData);
       if (!mounted) return;
 
@@ -173,47 +185,56 @@ class _ProfilePicState extends ConsumerState<ProfilePic> {
         );
         return;
       }
+
       final loginResult = await authRepo.signin(
         email: signupData.email,
         password: signupData.password,
       );
       if (!mounted) return;
       if (loginResult['success'] != true) {
-        await authRepo.signOut();
-        ref.read(userProvider.notifier).logout();
         setState(() {
           isLoading = false;
         });
+        ref.read(signupProvider.notifier).reset();
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              loginResult['message'] ?? 'Account was created but login failed',
+              loginResult['message'] ??
+                  'Account created — please sign in',
             ),
             backgroundColor: Colors.red,
           ),
         );
+
+        Routemaster.of(context).replace('/');
         return;
       }
-      final user = await authRepo.getUserData();
-      if (!mounted) return;
+
+      final rawUser = loginResult['user'];
+      final user = rawUser is Map ? Map<String, dynamic>.from(rawUser) : null;
+
       if (user == null) {
-        await authRepo.signOut();
-        ref.read(userProvider.notifier).logout();
         setState(() {
           isLoading = false;
         });
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text(
-              'Account was created but the session could not be verified',
-            ),
+            content: Text('Account was created but user data was not returned'),
             backgroundColor: Colors.red,
           ),
         );
         return;
       }
+
       ref.read(userProvider.notifier).setUser(user);
       ref.read(signupProvider.notifier).reset();
+
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
     } catch (e) {
       if (!mounted) return;
       setState(() {

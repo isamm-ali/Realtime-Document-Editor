@@ -29,22 +29,35 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }) {
     return InputDecoration(
       hintText: hintText,
-      hintStyle: const TextStyle(color: _muted, fontSize: 15),
+      hintStyle: const TextStyle(
+        color: _muted,
+        fontSize: 15,
+      ),
       suffixIcon: suffixIcon,
       filled: true,
       fillColor: _fill,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 17),
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: 20,
+        vertical: 17,
+      ),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: _border),
+        borderSide: const BorderSide(
+          color: _border,
+        ),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: _border),
+        borderSide: const BorderSide(
+          color: _border,
+        ),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: _ink, width: 1.4),
+        borderSide: const BorderSide(
+          color: _ink,
+          width: 1.4,
+        ),
       ),
     );
   }
@@ -70,11 +83,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     try {
       final authRepo = ref.read(authRepositoryProvider);
 
-      // Make sure a previous session cannot leak into this login.
       await authRepo.signOut();
       ref.read(userProvider.notifier).logout();
 
-      final result = await authRepo.signin(email: email, password: password);
+      final result = await authRepo.signin(
+        email: email,
+        password: password,
+      );
 
       if (!mounted) return;
 
@@ -85,7 +100,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(result['message'] ?? 'Invalid email or password'),
+            content: Text(
+              result['message'] ?? 'Invalid email or password',
+            ),
             backgroundColor: Colors.red,
           ),
         );
@@ -107,7 +124,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Login session could not be verified'),
+            content: Text(
+              'Login session could not be verified',
+            ),
             backgroundColor: Colors.red,
           ),
         );
@@ -125,7 +144,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Something went wrong: $e'),
+          content: Text(
+            'Something went wrong: $e',
+          ),
           backgroundColor: Colors.red,
         ),
       );
@@ -141,169 +162,203 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isPhone = screenWidth < 600;
+
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 400),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 40),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
-                      Text(
-                        'SulfurDocs',
-                        style: TextStyle(
-                          fontSize: 26,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: -0.4,
-                          color: _ink,
-                        ),
-                      ),
-                      SizedBox(width: 6),
-                      Icon(Icons.description_outlined, size: 26, color: _ink),
-                    ],
-                  ),
-
-                  const SizedBox(height: 8),
-
-                  const Text(
-                    'Welcome back',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 14, color: Colors.black),
-                  ),
-
-                  const SizedBox(height: 36),
-
-                  TextField(
-                    controller: emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    style: const TextStyle(fontSize: 15, color: _ink),
-                    decoration: inputDecoration(hintText: 'Enter your email'),
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  TextField(
-                    controller: passwordController,
-                    obscureText: obscurePassword,
-                    style: const TextStyle(fontSize: 15, color: _ink),
-                    decoration: inputDecoration(
-                      hintText: 'Enter your password',
-                      suffixIcon: IconButton(
-                        splashRadius: 20,
-                        icon: Icon(
-                          obscurePassword
-                              ? Icons.visibility_off_outlined
-                              : Icons.visibility_outlined,
-                          color: _muted,
-                          size: 20,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            obscurePassword = !obscurePassword;
-                          });
-                        },
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 14),
-
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      onPressed: () {},
-                      style: TextButton.styleFrom(
-                        padding: EdgeInsets.zero,
-                        minimumSize: Size.zero,
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ),
-                      child: const Text(
-                        'Forgot password?',
-                        style: TextStyle(
-                          color: _ink,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 32),
-
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: ElevatedButton(
-                      onPressed: isLoading ? null : signIn,
-                      style:
-                          ElevatedButton.styleFrom(
-                            backgroundColor: _ink,
-                            foregroundColor: Colors.white,
-                            disabledBackgroundColor: _muted,
-                            elevation: 0,
-                            shadowColor: Colors.transparent,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                          ).copyWith(
-                            overlayColor: WidgetStateProperty.all(
-                              Colors.white.withValues(alpha: 0.08),
-                            ),
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: EdgeInsets.symmetric(
+              horizontal: isPhone ? 20 : 24,
+              vertical: isPhone ? 24 : 40,
+            ),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: isPhone ? double.infinity : 400,
+              ),
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: isPhone ? 4 : 32,
+                  vertical: isPhone ? 20 : 40,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        Text(
+                          'SulfurDocs',
+                          style: TextStyle(
+                            fontSize: 26,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: -0.4,
+                            color: _ink,
                           ),
-                      child: isLoading
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                          : const Text(
-                              'Sign In',
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
-                                letterSpacing: 0.2,
-                              ),
-                            ),
+                        ),
+                        SizedBox(width: 6),
+                        Icon(
+                          Icons.description_outlined,
+                          size: 26,
+                          color: _ink,
+                        ),
+                      ],
                     ),
-                  ),
 
-                  const SizedBox(height: 24),
+                    const SizedBox(height: 8),
 
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text(
-                        "Don't have an account? ",
-                        style: TextStyle(color: _muted, fontSize: 13.5),
+                    const Text(
+                      'Welcome back',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.black,
                       ),
-                      GestureDetector(
-                        onTap: () {
-                          Routemaster.of(context).push('/signup');
-                        },
+                    ),
+
+                    SizedBox(height: isPhone ? 28 : 36),
+
+                    TextField(
+                      controller: emailController,
+                      keyboardType: TextInputType.emailAddress,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        color: _ink,
+                      ),
+                      decoration: inputDecoration(
+                        hintText: 'Enter your email',
+                      ),
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    TextField(
+                      controller: passwordController,
+                      obscureText: obscurePassword,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        color: _ink,
+                      ),
+                      decoration: inputDecoration(
+                        hintText: 'Enter your password',
+                        suffixIcon: IconButton(
+                          splashRadius: 20,
+                          icon: Icon(
+                            obscurePassword
+                                ? Icons.visibility_off_outlined
+                                : Icons.visibility_outlined,
+                            color: _muted,
+                            size: 20,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              obscurePassword = !obscurePassword;
+                            });
+                          },
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 14),
+
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: () {},
+                        style: TextButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                          minimumSize: Size.zero,
+                          tapTargetSize:
+                              MaterialTapTargetSize.shrinkWrap,
+                        ),
                         child: const Text(
-                          'Sign up',
+                          'Forgot password?',
                           style: TextStyle(
                             color: _ink,
-                            fontSize: 13.5,
-                            fontWeight: FontWeight.w600,
-                            decoration: TextDecoration.underline,
-                            decorationColor: _border,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ),
-                    ],
-                  ),
-                ],
+                    ),
+
+                    SizedBox(height: isPhone ? 26 : 32),
+
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: isLoading ? null : signIn,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _ink,
+                          foregroundColor: Colors.white,
+                          disabledBackgroundColor: _muted,
+                          elevation: 0,
+                          shadowColor: Colors.transparent,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ).copyWith(
+                          overlayColor: WidgetStateProperty.all(
+                            Colors.white.withValues(alpha: 0.08),
+                          ),
+                        ),
+                        child: isLoading
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Text(
+                                'Sign In',
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                  letterSpacing: 0.2,
+                                ),
+                              ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Flexible(
+                          child: Text(
+                            "Don't have an account? ",
+                            style: TextStyle(
+                              color: _muted,
+                              fontSize: 13.5,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            Routemaster.of(context).push('/signup');
+                          },
+                          child: const Text(
+                            'Sign up',
+                            style: TextStyle(
+                              color: _ink,
+                              fontSize: 13.5,
+                              fontWeight: FontWeight.w600,
+                              decoration: TextDecoration.underline,
+                              decorationColor: _border,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

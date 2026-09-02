@@ -6,6 +6,7 @@ import 'package:routemaster/routemaster.dart';
 import 'package:frontend/providers/auth_repository_provider.dart';
 import 'package:frontend/providers/document_repository_provider.dart';
 import 'package:frontend/providers/user_provider.dart';
+import 'package:frontend/data/avatars.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
@@ -31,8 +32,11 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   Future<void> signOut(WidgetRef ref) async {
     final authRepo = ref.read(authRepositoryProvider);
+
     await authRepo.signOut();
+
     if (!mounted) return;
+
     ref.read(userProvider.notifier).logout();
   }
 
@@ -46,6 +50,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         final document = result['document'];
 
         await Routemaster.of(context).push('/document/${document['_id']}');
+
         refreshDocuments();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -62,8 +67,32 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isPhone = screenWidth < 600;
+
     return Scaffold(
       appBar: AppBar(
+        leading: Builder(
+          builder: (context) {
+            final user = ref.watch(userProvider).user;
+            final pfpId = user?['pfp'];
+
+            final avatar = avatars.firstWhere(
+              (avatar) => avatar.id == pfpId,
+              orElse: () => avatars.first,
+            );
+
+            return Padding(
+              padding: const EdgeInsets.all(8),
+              child: GestureDetector(
+                onTap: () {},
+                child: ClipOval(
+                  child: Image.asset(avatar.asset, fit: BoxFit.cover),
+                ),
+              ),
+            );
+          },
+        ),
         actions: [
           IconButton(
             onPressed: () => createDocument(context, ref),
@@ -75,17 +104,23 @@ class _HomePageState extends ConsumerState<HomePage> {
           ),
         ],
       ),
-
       body: FutureBuilder<Map<String, dynamic>>(
         future: documentsFuture,
-
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Loader();
           }
 
           if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Text(
+                  'Error: ${snapshot.error}',
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            );
           }
 
           if (!snapshot.hasData) {
@@ -100,26 +135,37 @@ class _HomePageState extends ConsumerState<HomePage> {
 
           return Center(
             child: Container(
-              width: 600,
-              margin: const EdgeInsets.all(10),
+              width: isPhone
+                  ? double.infinity
+                  : screenWidth > 800
+                  ? 600
+                  : screenWidth * 0.9,
+              margin: EdgeInsets.all(isPhone ? 8 : 10),
               child: ListView.builder(
+                padding: EdgeInsets.symmetric(vertical: isPhone ? 4 : 8),
                 itemCount: documents.length,
                 itemBuilder: (context, index) {
                   final DocumentModel document = documents[index];
 
-                  return SizedBox(
-                    child: Card(
-                      child: ListTile(
-                        title: Text(
-                          document.title,
-                          style: TextStyle(fontSize: 17),
-                        ),
-                        onTap: () async {
-                          await Routemaster.of(context)
-                              .push('/document/${document.id}');
-                          refreshDocuments();
-                        },
+                  return Card(
+                    margin: EdgeInsets.symmetric(vertical: isPhone ? 5 : 6),
+                    child: ListTile(
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: isPhone ? 14 : 16,
+                        vertical: isPhone ? 4 : 6,
                       ),
+                      title: Text(
+                        document.title,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontSize: 17),
+                      ),
+                      onTap: () async {
+                        await Routemaster.of(context)
+                            .push('/document/${document.id}');
+
+                        refreshDocuments();
+                      },
                     ),
                   );
                 },

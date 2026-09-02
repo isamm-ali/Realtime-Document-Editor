@@ -6,7 +6,17 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:frontend/providers/signup_provider.dart';
 
 class AuthService {
-  static const String baseUrl = 'http://localhost:5000';
+  static String get baseUrl {
+    if (kIsWeb) {
+      return 'http://localhost:5000';
+    }
+
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      return 'http://10.0.2.2:5000';
+    }
+
+    return 'http://localhost:5000';
+  }
 
   static Map<String, dynamic> _decodeResponse(http.Response response) {
     try {
