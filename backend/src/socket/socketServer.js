@@ -1,3 +1,11 @@
+import { Document } from "../models/document";
+
+const saveData = async (data) => {
+  let document = await Document.findById(data.documentId);
+  document.content = data.delta;
+  document = await document.save();
+}
+
 export const socketServer = (io) => {
   io.on("connection", (socket) => {
     console.log("User connected:", socket.id);
@@ -13,8 +21,13 @@ export const socketServer = (io) => {
         .emit("changes", data);
     });
 
+    socket.on('save', (data) => {
+      saveData(data);
+    });
+
     socket.on("disconnect", () => {
       console.log("User disconnected:", socket.id);
     });
   });
 };
+

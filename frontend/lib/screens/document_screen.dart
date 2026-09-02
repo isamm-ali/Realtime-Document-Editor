@@ -5,6 +5,9 @@ import 'package:flutter_quill/quill_delta.dart';
 import 'package:frontend/providers/document_repository_provider.dart';
 import 'package:frontend/models/document_model.dart';
 import 'package:frontend/repositories/socket_repository.dart';
+import 'package:routemaster/routemaster.dart';
+
+import 'dart:async';
 
 class DocumentScreen extends ConsumerStatefulWidget {
   final String id;
@@ -43,19 +46,31 @@ class _DocumentScreenState extends ConsumerState<DocumentScreen> {
         socketRepository.typing(data);
       }
     });
+
+    Timer.periodic(const Duration(seconds: 2), (timer) {
+      socketRepository.autoSave(<String, dynamic>{
+        'delta': quillController.document.toDelta().toJson(),
+        'documentId': widget.id,
+      });
+    });
   }
 
   Future<void> fetchDocumentData() async {
     final result = await ref
         .read(documentRepositoryProvider)
         .getDocument(id: widget.id);
-
     if (result['success']) {
-      final document = result['document'];
+      final DocumentModel document = result['document'];
 
-      setState(() {
-        nameController.text = document.title;
-      });
+      final quillDocument = document.content.isNotEmpty
+          ? Document.fromJson(document.content)
+          : Document();
+      quillController.document = quillDocument;
+      if (mounted) {
+        setState(() {
+          nameController.text = document.title;
+        });
+      }
     }
   }
 
@@ -112,7 +127,16 @@ class _DocumentScreenState extends ConsumerState<DocumentScreen> {
           padding: const EdgeInsets.symmetric(vertical: 9),
           child: Row(
             children: [
-              Image.asset('assets/logo/docs-logo.png', height: 30, width: 23),
+              GestureDetector(
+                onTap: () {
+                  Routemaster.of(context).replace('/');
+                },
+                child: Image.asset(
+                  'assets/logo/docs-logo.png',
+                  height: 30,
+                  width: 23,
+                ),
+              ),
               const SizedBox(width: 10),
               SizedBox(
                 width: 180,
