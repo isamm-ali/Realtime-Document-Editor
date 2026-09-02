@@ -35,10 +35,14 @@ class _DocumentScreenState extends ConsumerState<DocumentScreen> {
             padding: const EdgeInsets.all(10),
             child: ElevatedButton.icon(
               onPressed: () {},
-              icon: const Icon(Icons.lock, size: 16.0),
-              label: const Text('Share'),
+              icon: const Icon(Icons.lock, size: 16.0, color: Colors.white),
+              label: const Text('Share', style: TextStyle(color: Colors.white)),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Color.fromRGBO(26, 115, 232, 1),
+                backgroundColor: const Color.fromRGBO(26, 115, 232, 1),
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
             ),
           ),
@@ -47,7 +51,7 @@ class _DocumentScreenState extends ConsumerState<DocumentScreen> {
           padding: const EdgeInsets.symmetric(vertical: 9.0),
           child: Row(
             children: [
-              Image.asset('assets/logo/docs-logo.png', height: 40),
+              Image.asset('assets/logo/docs-logo.png', height: 30, width: 23),
               const SizedBox(height: 10),
               SizedBox(
                 width: 180,

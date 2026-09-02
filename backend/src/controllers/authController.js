@@ -4,7 +4,8 @@ import { User } from "../models/user.js";
 
 export const signup = async (req, res) => {
   try {
-    const { username, email, password, pfp } = req.body;
+    const { username, password, pfp } = req.body;
+    const email = req.body.email?.trim().toLowerCase();
     if (!username || !email || !password || !pfp) {
       return res.status(400).json({ message: "All fields are required" });
     }
@@ -22,9 +23,9 @@ export const signup = async (req, res) => {
 
 export const signin = async (req, res) => {
   try {
-    const email = req.body.email;
+    const email = req.body.email?.trim().toLowerCase();
     const password = req.body.password;
-    const user = await User.findOne({ email: email });
+    const user = await User.findOne({ email });
     if (!user) {
       return res.status(401).json({ message: "Email or Password is invalid" });
     } else {
@@ -35,7 +36,9 @@ export const signin = async (req, res) => {
         });
         return res.status(200).json({ message: "Login successful!", token });
       } else {
-        return res.status(401).json({ message: "Email or Password is invalid" });
+        return res
+          .status(401)
+          .json({ message: "Email or Password is invalid" });
       }
     }
   } catch {

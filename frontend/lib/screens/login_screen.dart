@@ -70,7 +70,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           .read(authRepositoryProvider)
           .signin(
             email: emailController.text.trim(),
-            password: passwordController.text,
+            password: passwordController.text.trim(),
           );
 
       if (!mounted) return;
@@ -98,9 +98,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         isLoading = false;
       });
 
-      // Do NOT navigate manually.
-      // userProvider changes and main.dart will switch
-      // from loggedOutRoute to loggedInRoute.
     } catch (e) {
       if (!mounted) return;
 
@@ -138,7 +135,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // Logo
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: const [
@@ -166,7 +162,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
                   const SizedBox(height: 36),
 
-                  // Email
                   TextField(
                     controller: emailController,
                     keyboardType: TextInputType.emailAddress,
@@ -176,7 +171,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
                   const SizedBox(height: 12),
 
-                  // Password
                   TextField(
                     controller: passwordController,
                     obscureText: obscurePassword,
@@ -203,7 +197,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
                   const SizedBox(height: 14),
 
-                  // Forgot password
                   Align(
                     alignment: Alignment.centerRight,
                     child: TextButton(
@@ -226,7 +219,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
                   const SizedBox(height: 32),
 
-                  // Sign in
                   SizedBox(
                     width: double.infinity,
                     height: 50,
@@ -269,7 +261,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
                   const SizedBox(height: 24),
 
-                  // Sign up
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/providers/signup_provider.dart';
 import 'package:frontend/screens/login_screen.dart';
 import 'package:frontend/screens/profilepic_screen.dart';
+import 'package:routemaster/routemaster.dart';
 
 class SignUpScreen extends ConsumerStatefulWidget {
   const SignUpScreen({super.key});
@@ -167,12 +168,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                           ref
                               .read(signupProvider.notifier)
                               .setPassword(passwordController.text.trim());
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ProfilePic(),
-                            ),
-                          );
+                          Routemaster.of(context).replace('/profile');
                         }
                       },
                       style:
@@ -211,12 +207,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                       ),
                       GestureDetector(
                         onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => LoginScreen(),
-                            ),
-                          );
+                          Routemaster.of(context).push('/');
                         },
                         child: const Text(
                           'Sign In',
