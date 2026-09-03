@@ -25,56 +25,58 @@ class _DocumentScreenState extends ConsumerState<DocumentScreen> {
   final QuillController quillController = QuillController.basic();
   final SocketRepository socketRepository = SocketRepository();
 
+  StreamSubscription? _localChangesSub;
+
   @override
-  @override
-void initState() {
-  super.initState();
+  void initState() {
+    super.initState();
 
-  socketRepository.joinRoom(widget.id);
+    socketRepository.joinRoom(widget.id);
 
-  fetchDocumentData();
+    socketRepository.changeListener((data) {
+      debugPrint('RECEIVED CHANGES: $data');
 
-  socketRepository.changeListener((data) {
-    debugPrint('RECEIVED CHANGES: $data');
+      if (!mounted) return;
 
-    if (!mounted) return;
+      final delta = data['delta'];
 
-    final delta = data['delta'];
+      if (delta is List) {
+        quillController.compose(
+          Delta.fromJson(delta),
+          quillController.selection,
+          ChangeSource.remote,
+        );
+      }
+    });
 
-    if (delta is List) {
-      quillController.compose(
-        Delta.fromJson(delta),
-        quillController.selection,
-        ChangeSource.remote,
-      );
-    }
-  });
+    fetchDocumentData();
 
-  quillController.document.changes.listen((event) {
-    if (event.source == ChangeSource.local) {
-      debugPrint('SENDING TYPING: ${event.change}');
+    Timer.periodic(const Duration(seconds: 2), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      socketRepository.autoSave(<String, dynamic>{
+        'delta': quillController.document.toDelta().toJson(),
+        'documentId': widget.id,
+      });
+    });
+  }
 
-      final data = <String, dynamic>{
-        'delta': event.change.toJson(),
-        'room': widget.id,
-      };
+  void _attachLocalChangesListener() {
+    _localChangesSub?.cancel();
+    _localChangesSub = quillController.document.changes.listen((event) {
+      if (event.source == ChangeSource.local) {
+        debugPrint('SENDING TYPING: ${event.change}');
 
-      socketRepository.typing(data);
-    }
-  });
-
-  Timer.periodic(
-    const Duration(seconds: 2),
-    (timer) {
-      socketRepository.autoSave(
-        <String, dynamic>{
-          'delta': quillController.document.toDelta().toJson(),
-          'documentId': widget.id,
-        },
-      );
-    },
-  );
-}
+        final data = <String, dynamic>{
+          'delta': event.change.toJson(),
+          'room': widget.id,
+        };
+        socketRepository.typing(data);
+      }
+    });
+  }
 
   Future<void> fetchDocumentData() async {
     final result = await ref
@@ -83,23 +85,26 @@ void initState() {
 
     if (result['success']) {
       final DocumentModel document = result['document'];
-
       final quillDocument = document.content.isNotEmpty
           ? Document.fromJson(document.content)
           : Document();
 
       quillController.document = quillDocument;
-
+      _attachLocalChangesListener();
       if (mounted) {
         setState(() {
           nameController.text = document.title;
         });
       }
+    } else {
+      _attachLocalChangesListener();
     }
   }
 
   @override
   void dispose() {
+    _localChangesSub?.cancel();
+    socketRepository.removeChangeListener();
     nameController.dispose();
     quillController.dispose();
     super.dispose();
