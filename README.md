@@ -3,10 +3,6 @@
 A Google Docs-style document editor built from scratch with Flutter, Node.js, MongoDB and Socket.IO.
 
 ![Document Editor](https://raw.githubusercontent.com/isamm-ali/Realtime-Document-Editor/main/images/image1.png)
-<img width="510" height="912" alt="Screenshot 2026-09-05 124004" src="https://github.com/user-attachments/assets/3d936e86-2e04-4835-a755-516db7d5aba8" />
-<img width="536" height="948" alt="Screenshot 2026-09-05 123859" src="https://github.com/user-attachments/assets/e78d6c0d-a5e7-4691-9d1d-89e65e25d088" />
-<img width="533" height="927" alt="Screenshot 2026-09-05 123631" src="https://github.com/user-attachments/assets/4fb127de-e067-4fa5-a4f6-c4871504e86d" />
-<img width="532" height="952" alt="Screenshot 2026-09-05 123555" src="https://github.com/user-attachments/assets/e82d3247-f8f4-4c6e-9cad-68c45468e7e3" />
 
 ## DEMO
 https://github.com/user-attachments/assets/aaee8f68-eb44-41eb-8f40-b8dc74b9a495
