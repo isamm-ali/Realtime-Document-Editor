@@ -44,8 +44,6 @@ class _ProfilePicState extends ConsumerState<ProfilePic> {
     final password = signup.password;
     final pfp = avatars[selectedIndex].id.trim();
 
-    // This is a real error now, not something we silently
-    // recover from by throwing the user back to signup.
     if (username.isEmpty || email.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -68,7 +66,6 @@ class _ProfilePicState extends ConsumerState<ProfilePic> {
       return;
     }
 
-    // Create ONE immutable snapshot of everything we are sending.
     final signupData = SignupState(
       username: username,
       email: email,
@@ -76,7 +73,6 @@ class _ProfilePicState extends ConsumerState<ProfilePic> {
       pfp: pfp,
     );
 
-    // Save the avatar into the draft too.
     ref.read(signupProvider.notifier).setPfp(pfp);
 
     setState(() {
@@ -86,7 +82,6 @@ class _ProfilePicState extends ConsumerState<ProfilePic> {
     try {
       final authRepo = ref.read(authRepositoryProvider);
 
-      // Create the account.
       final signupResult = await authRepo.signup(signupData);
 
       if (!mounted) return;
@@ -108,7 +103,6 @@ class _ProfilePicState extends ConsumerState<ProfilePic> {
         return;
       }
 
-      // Automatically sign the new user in.
       final loginResult = await authRepo.signin(
         email: signupData.email,
         password: signupData.password,
@@ -155,10 +149,8 @@ class _ProfilePicState extends ConsumerState<ProfilePic> {
 
       final user = Map<String, dynamic>.from(rawUser);
 
-      // Authentication is now complete.
       ref.read(userProvider.notifier).setUser(user);
 
-      // Signup draft is no longer needed.
       ref.read(signupProvider.notifier).reset();
 
       if (!mounted) return;
@@ -167,7 +159,6 @@ class _ProfilePicState extends ConsumerState<ProfilePic> {
         isLoading = false;
       });
 
-      // Explicitly leave the avatar route.
       Routemaster.of(context).replace('/');
     } catch (e) {
       if (!mounted) return;
